@@ -6,33 +6,39 @@ import Swal from "sweetalert2";
 
 
 const Login = () => {
-    const { login } = useContext(AuthContext)
+    const { login, accountId } = useContext(AuthContext)
     const navigate = useNavigate();
     const location = useLocation()
 
     const handleLogin = e => {
         e.preventDefault();
-        const email = e.target.email.value;
+        const NumEmail = e.target.NumEmail.value;
         const PIN = e.target.PIN.value;
         axios.get("http://localhost:3000/users")
             .then(res => {
                 const users = res.data;
-                console.log(users)
-                const account = users.find(user => user.email == email && user.PIN === PIN);
+                const account = users.find(user => (user.email === NumEmail || user.number === NumEmail) && user.PIN === PIN);
                 if (account) {
-                    const jwtUser = { email: email };
+                    accountId(account._id);
+                    const jwtUser = { email: NumEmail };
                     axios.post('http://localhost:3000/jwt', jwtUser)
                         .then((res) => {
+                            Swal.fire({
+                                icon: "success",
+                                title: "Login success.",
+                                showConfirmButton: false,
+                                timer: 2000,
+                            });
                             localStorage.setItem("access-token", res.data.token);
                             navigate(location.state ? `${location.state}` : "/");
                             login();
                         })
-                }else{
+                } else {
                     Swal.fire({
                         icon: "error",
                         title: "Login failed.",
-                        text: "Email or PIN incorrect!",
-                      });
+                        text: "Email/Number or PIN incorrect!",
+                    });
                 }
             })
     }
@@ -44,9 +50,9 @@ const Login = () => {
                 <form onSubmit={handleLogin}>
                     <div className="form-control">
                         <label className="label">
-                            <span className="label-text font-semibold">Email</span>
+                            <span className="label-text font-semibold">Email / Number</span>
                         </label>
-                        <input type="email" name="email" placeholder="email" className="input input-bordered" required />
+                        <input type="text" name="NumEmail" placeholder="Email/number" className="input input-bordered" required />
                     </div>
                     <div className="form-control">
                         <label className="label">

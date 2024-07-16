@@ -4,22 +4,30 @@ import { FaEye } from "react-icons/fa";
 import { IoMdEyeOff } from "react-icons/io";
 import { Link, useNavigate } from "react-router-dom";
 import { AuthContext } from "../../Provider/Provider";
+import Swal from "sweetalert2";
 
 
 const Register = () => {
     const navigate = useNavigate();
     const [showPass, setShowPass] = useState(true);
     const [registerError, setRegisterError] = useState("");
+    const [numberError, setNumberError] = useState("");
 
-    const { register } = useContext(AuthContext);
+    const { register, accountId } = useContext(AuthContext);
 
     const handleRegister = async (e) => {
         e.preventDefault();
         setRegisterError("");
+        setNumberError("");
         const name = e.target.name.value;
         const number = e.target.number.value;
         const email = e.target.email.value;
         const PIN = e.target.PIN.value;
+
+        if (number.length < 9) {
+            setNumberError("write at least 9 numbers");
+            return
+        }
 
         if (PIN.length < 5 || PIN.length > 5) {
             setRegisterError("password should be 5 numbers");
@@ -38,18 +46,37 @@ const Register = () => {
 
         axios.post("http://localhost:3000/users", userData)
             .then(res => {
-                console.log(res.data)
                 if (res.data.acknowledged === true) {
+                    axios.get("http://localhost:3000/users")
+                        .then(res => {
+                            const users = res.data;
+                            const account = users.find(user => user.email === email);
+                            if (account) {
+                                accountId(account._id);
+                                const jwtUser = { email: email };
+                                axios.post('http://localhost:3000/jwt', jwtUser)
+                                    .then((res) => {
+                                        Swal.fire({
+                                            icon: "success",
+                                            title: "Registration success.",
+                                            showConfirmButton: false,
+                                            timer: 2000,
+                                        });
+                                        localStorage.setItem("access-token", res.data.token);
+                                        navigate("/");
+                                        register();
+                                    })
+                            } else {
+                                Swal.fire({
+                                    icon: "error",
+                                    title: "Registration failed.",
+                                    text: "Please try again!",
+                                });
+                            }
+                        })
                     e.target.name.value = "";
                     e.target.email.value = "";
                     e.target.PIN.value = "";
-                    const jwtUser = { email: email };
-                    axios.post('http://localhost:3000/jwt', jwtUser)
-                        .then((res) => {
-                            localStorage.setItem("access-token", res.data.token);
-                            navigate("/");
-                            register();
-                        })
                 }
             })
     }
@@ -74,8 +101,11 @@ const Register = () => {
                         <label className="label">
                             <span className="label-text font-semibold">Number</span>
                         </label>
-                        <input type="number" name="number" placeholder="email" className="input input-bordered" required />
+                        <input type="number" name="number" placeholder="Number" className="input input-bordered" required />
                     </div>
+                    <p className="text-red-600">
+                        {numberError}
+                    </p>
                     <div className="form-control">
                         <label className="label">
                             <span className="label-text font-semibold">PIN</span>

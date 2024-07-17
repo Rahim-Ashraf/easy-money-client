@@ -13,7 +13,7 @@ const Register = () => {
     const [registerError, setRegisterError] = useState("");
     const [numberError, setNumberError] = useState("");
 
-    const { register, accountId } = useContext(AuthContext);
+    const { register } = useContext(AuthContext);
 
     const handleRegister = async (e) => {
         e.preventDefault();
@@ -23,6 +23,7 @@ const Register = () => {
         const number = e.target.number.value;
         const email = e.target.email.value;
         const PIN = e.target.PIN.value;
+        const role = e.target.role.value;
 
         if (number.length < 9) {
             setNumberError("write at least 9 numbers");
@@ -41,7 +42,7 @@ const Register = () => {
             email,
             PIN,
             number,
-            role: "pending",
+            role:`pending_${role}`,
         }
 
         axios.post("http://localhost:3000/users", userData)
@@ -52,7 +53,6 @@ const Register = () => {
                             const users = res.data;
                             const account = users.find(user => user.email === email);
                             if (account) {
-                                accountId(account._id);
                                 const jwtUser = { email: email };
                                 axios.post('http://localhost:3000/jwt', jwtUser)
                                     .then((res) => {
@@ -106,6 +106,15 @@ const Register = () => {
                     <p className="text-red-600">
                         {numberError}
                     </p>
+                    <div className="form-control">
+                        <label className="label">
+                            <span className="label-text font-semibold">Role</span>
+                        </label>
+                        <select name="role" className="select select-bordered max-w-xs">
+                            <option defaultValue value="user">User</option>
+                            <option value="agent">Agent</option>
+                        </select></div>
+
                     <div className="form-control">
                         <label className="label">
                             <span className="label-text font-semibold">PIN</span>

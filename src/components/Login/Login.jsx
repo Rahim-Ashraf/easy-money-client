@@ -6,7 +6,7 @@ import Swal from "sweetalert2";
 
 
 const Login = () => {
-    const { login, accountId } = useContext(AuthContext)
+    const { login } = useContext(AuthContext)
     const navigate = useNavigate();
     const location = useLocation()
 
@@ -19,7 +19,6 @@ const Login = () => {
                 const users = res.data;
                 const account = users.find(user => (user.email === NumEmail || user.number === NumEmail) && user.PIN === PIN);
                 if (account) {
-                    accountId(account._id);
                     const jwtUser = { email: NumEmail };
                     axios.post('http://localhost:3000/jwt', jwtUser)
                         .then((res) => {
